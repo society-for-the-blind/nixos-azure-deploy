@@ -1,6 +1,16 @@
 # Deploy custom images and NixOS VMs to Azure
 
+## 0. Background
+
+Wanted to use [NixOps](https://github.com/NixOS/nixops) to deploy NixOS virtual machines to the Azure cloud, but apparently [the Azure backend has been removed](https://github.com/NixOS/nixops/pull/1131). [Cole Mickens](https://github.com/colemickens) wrote a script called [`azure-new`](https://github.com/NixOS/nixpkgs/tree/master/nixos/maintainers/scripts/azure-new), and shared it in the [Nixpkgs repo](https://github.com/NixOS/nixpkgs), which is basically a replacement for the missing [NixOps](https://github.com/NixOS/nixops).  backend. (There was already a script called `azure`, hence the name.) The notion is that once the NixOS machines are deployed, they can be managed with [NixOps](https://github.com/NixOS/nixops). (TODO: Prove this statement.)
+
+Created a [pull request](https://github.com/NixOS/nixpkgs/pull/95279) with some changes that made a script more straightforward for myself, but [Cole](https://github.com/colemickens) already started working on a more modern alternative, [`flake-azure-demo`](https://github.com/colemickens/flake-azure-demo/tree/dev). (For help and more info see IRC channel #nixos-azure, with [logs](https://logs.nix.samueldr.com/nixos-azure/).)
+
+Not being up to date with flakes and not wanting to lose my changes (or have them embedded in thousands of Nixpkgs repo branches), I moved all related commits into this repo. (Stackoverflow threads that helped: [How to show git log history (i.e., all the related commits) for a sub directory of a git repo?](https://stackoverflow.com/questions/16343659/how-to-show-git-log-history-for-a-sub-directory-of-a-git-repo) and [How to copy commits from one Git repo to another?](https://stackoverflow.com/questions/37471740/how-to-copy-commits-from-one-git-repo-to-another).)
+
 ## 1. Demo
+
+<sup>This has been part of the original script, and it may be relevant still.</sup>
 
 Here's a demo of this being used: https://asciinema.org/a/euXb9dIeUybE3VkstLWLbvhmp
 
@@ -11,9 +21,7 @@ includes a built-in test user account, which by default uses your
 
 ## 2. Before using
 
-The provided [`shell.nix`](./shell.nix) and [`image.nix`](./examples/basic/image.nix) will import the cloned Nixpkgs repo's [`default.nix`](../../../../default.nix).
-
-As a consequence, depending on the current state of Nixpkgs, `nix-shell` and the Azure image may not build at all.  The former can be resolved by the suggestions below, but the latter may still fail (when [`upload-image.sh`](./upload-image.sh) calls [`image.nix`](./examples/basic/image.nix)).
+The provided [`shell.nix`](./shell.nix) and [`image.nix`](./examples/basic/image.nix) will import the Nixpkgs repo](https://github.com/NixOS/nixpkgs)'s [`default.nix`](../../../../default.nix) (as the script has been part of that repo), and, as a consequence, depending on the current state of Nixpkgs, `nix-shell` and the Azure image may not build at all.
 
 ### 2.1 `nix-shell` won't build
 
@@ -31,7 +39,7 @@ $ nix-shell --arg pkgs 'import (fetchTarball "https://github.com/NixOS/nixpkgs/a
 
 ### 2.2 Image build fails
 
-[`system.nix`](./examples/basic/system.nix) (called by [`image.nix`](./examples/basic/image.nix)) relies on the `virtualisation.azureImage` (defined in [`azure-image.nix`](https://github.com/NixOS/nixpkgs/blob/066c604eec6089e25aa5c4cc933decebdf8aa626/nixos/modules/virtualisation/azure-image.nix)?) attribute, that is not yet present in the 20.03 channel, ruling out option 1 in section 2.1 above.
+[`system.nix`](./nixos/maintainers/scripts/azure-new/examples/basic/system.nix) (called by [`image.nix`](./nixos/maintainers/scripts/azure-new/examples/basic/image.nix)) relies on the `virtualisation.azureImage` (defined in [`azure-image.nix`](./nixos/modules/virtualisation/azure-image.nix)) attribute, that is not yet present in the 20.03 channel, ruling out option 1 in section 2.1 above.
 
 See also [issue #86005](https://github.com/NixOS/nixpkgs/issues/86005) when getting `The option `virtualisation.azureImage` defined in ... does not exist`.
 
@@ -41,9 +49,9 @@ In short:
 
 1. `nix-shell`
 
-2. [`upload-image.sh`](./upload-image.sh)
+2. [`upload-image.sh`](./nixos/maintainers/scripts/azure-new/upload-image.sh)
 
-3. (optional) [`boot-vm.sh`](./boot-vm.sh)
+3. (optional) [`boot-vm.sh`](./nixos/maintainers/scripts/azure-new/boot-vm.sh)
 
 ### 3.1 Enter `nix-shell`
 
@@ -53,7 +61,7 @@ $ nix-shell
 
 See section 2.1 on how to provide a specific Nixpkgs version to `nix-shell`.
 
-### 3.2 Create and upload image ([`upload-image.sh`](./upload-image.sh))
+### 3.2 Create and upload image ([`upload-image.sh`](./nixos/maintainers/scripts/azure-new/upload-image.sh))
 
 ```text
 [..]$ ./upload-image.sh --resource-group "my-rg" --image-name "my-image"
@@ -98,7 +106,7 @@ USAGE: (Every switch requires an argument)
                       for `./upload-image.sh` is used
 ```
 
-### 3.3 Start virtual machine ([`boot-vm.sh`](./boot-vm.sh))
+### 3.3 Start virtual machine ([`boot-vm.sh`](./nixos/maintainers/scripts/azure-new/boot-vm.sh))
 
 To create an existing virtual machine on Azure:
 
@@ -141,25 +149,25 @@ NOTE: Brand new SSH  keypair is going to  be generated. To
 
 #### 4.1.1 Disks
 
-A new disk (with the same name as the image) is generated every time [`upload-image.sh`](./upload-image.sh) is used to avoid using storage accounts and to be able to upload images directly.
+A new disk (with the same name as the image) is generated every time [`upload-image.sh`](./nixos/maintainers/scripts/azure-new/upload-image.sh) is used to avoid using storage accounts and to be able to upload images directly.
 
-The disk is not deleted automatically, and re-use is not included in the script at the moment; to allow uplad, disks have to be in a specific state, and it is error-prone to get it right. Please see notes in [`upload-image.sh`](./upload-image.sh).
+The disk is not deleted automatically, and re-use is not included in the script at the moment; to allow uplad, disks have to be in a specific state, and it is error-prone to get it right. Please see notes in [`upload-image.sh`](./nixos/maintainers/scripts/azure-new/upload-image.sh).
 
 #### 4.1.2 Resource groups
 
-Both [`upload-image.sh`](./upload-image.sh) and [`boot-vm.sh`](./boot-vm.sh) have a `--resource-group` (or `-g`) switch to provide additional granularity of organizing resources.
+Both [`upload-image.sh`](./nixos/maintainers/scripts/azure-new/upload-image.sh) and [`boot-vm.sh`](./nixos/maintainers/scripts/azure-new/boot-vm.sh) have a `--resource-group` (or `-g`) switch to provide additional granularity of organizing resources.
 
 Some [Best practices for naming your Microsoft Azure resources](https://techcommunity.microsoft.com/t5/itops-talk-blog/best-practices-for-naming-your-microsoft-azure-resources/ba-p/294480).
 
 #### 4.1.3 Identities
 
-Aside from creating and booting up a VM, [`boot-vm.sh`](./boot-vm.sh) also creates a [managed service identity](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview), with the same name as the provided resource group. (See also [`az identity` Azure CLI command](https://docs.microsoft.com/en-us/cli/azure/identity?view=azure-cli-latest#az-identity-create).)
+Aside from creating and booting up a VM, [`boot-vm.sh`](./nixos/maintainers/scripts/azure-new/boot-vm.sh) also creates a [managed service identity](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview), with the same name as the provided resource group. (See also [`az identity` Azure CLI command](https://docs.microsoft.com/en-us/cli/azure/identity?view=azure-cli-latest#az-identity-create).)
 
-> TODO/QUESTION: Why? What are the benefits? This step is entirely optional, and [ `az vm create` ](https://docs.microsoft.com/en-us/cli/azure/vm?view=azure-cli-latest#az-vm-create) doesn't require it. If not need it, just rip out the relevant parts in [`boot-vm.sh`](./boot-vm.sh).
+> TODO/QUESTION: Why? What are the benefits? This step is entirely optional, and [ `az vm create` ](https://docs.microsoft.com/en-us/cli/azure/vm?view=azure-cli-latest#az-vm-create) doesn't require it. If not need it, just rip out the relevant parts in [`boot-vm.sh`](./nixos/maintainers/scripts/azure-new/boot-vm.sh).
 
 #### 4.1.4 New SSH keypair by default for each VM
 
-Seemed like a sensible default. If you want to provide your own keys, please take a look at the very end of [`boot-vm.sh`](./boot-vm.sh) (and maybe [`system.nix`](./examples/basic/system.nix) as well).
+Seemed like a sensible default. If you want to provide your own keys, please take a look at the very end of [`boot-vm.sh`](./nixos/maintainers/scripts/azure-new/boot-vm.sh) (and maybe [`system.nix`](./examples/basic/system.nix) as well).
 
 ## 5. Future Work
 
