@@ -47,11 +47,15 @@ See also [issue #86005](https://github.com/NixOS/nixpkgs/issues/86005) when gett
 
 In short:
 
+0. Clone this repo and `cd azure-new/nixos/maintainers/scripts/azure-new/`
+
 1. `nix-shell`
 
 2. [`upload-image.sh`](./nixos/maintainers/scripts/azure-new/upload-image.sh)
 
 3. (optional) [`boot-vm.sh`](./nixos/maintainers/scripts/azure-new/boot-vm.sh)
+
+The reason behind the weird directory paths is that this script has been pulled out from the main [Nixpkgs repo](https://github.com/NixOS/nixpkgs) and didn't feel the urgent need to do any changes to them (yet).
 
 ### 3.1 Enter `nix-shell`
 
