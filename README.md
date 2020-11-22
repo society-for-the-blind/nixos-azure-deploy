@@ -19,37 +19,12 @@ project and modify to your own needs. Notice that the example image
 includes a built-in test user account, which by default uses your
 `~/.ssh/id_ed25519.pub` as an `authorized_key`.
 
-## 2. Before using
+## 2. Usage
 
-The provided [`shell.nix`](./shell.nix) and [`image.nix`](./examples/basic/image.nix) will import the Nixpkgs repo](https://github.com/NixOS/nixpkgs)'s [`default.nix`](../../../../default.nix) (as the script has been part of that repo), and, as a consequence, depending on the current state of Nixpkgs, `nix-shell` and the Azure image may not build at all.
+0. `git clone https://github.com/society-for-the-blind/azure-new.git`  
+   and `cd azure-new/nixos/maintainers/scripts/azure-new/`
 
-### 2.1 `nix-shell` won't build
-
-1. Try using the channel of your system
-
-```text
-$ nix-shell --arg pkgs 'import <nixpkgs> {}'
-```
-
-2. or find a stable Nixpkgs version via commit hash (such 0c0fe6d for example)
-
-```text
-$ nix-shell --arg pkgs 'import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/0c0fe6d85b92c4e992e314bd6f9943413af9a309.tar.gz") {}'
-```
-
-### 2.2 Image build fails
-
-[`system.nix`](./nixos/maintainers/scripts/azure-new/examples/basic/system.nix) (called by [`image.nix`](./nixos/maintainers/scripts/azure-new/examples/basic/image.nix)) relies on the `virtualisation.azureImage` (defined in [`azure-image.nix`](./nixos/modules/virtualisation/azure-image.nix)) attribute, that is not yet present in the 20.03 channel, ruling out option 1 in section 2.1 above.
-
-See also [issue #86005](https://github.com/NixOS/nixpkgs/issues/86005) when getting `The option `virtualisation.azureImage` defined in ... does not exist`.
-
-## 3. Usage
-
-In short:
-
-0. Clone this repo and `cd azure-new/nixos/maintainers/scripts/azure-new/`
-
-1. `nix-shell`
+1. `nix-shell` (Read **2.1 Enter `nix-shell`** below!)
 
 2. [`upload-image.sh`](./nixos/maintainers/scripts/azure-new/upload-image.sh)
 
@@ -57,15 +32,24 @@ In short:
 
 The reason behind the weird directory paths is that this script has been pulled out from the main [Nixpkgs repo](https://github.com/NixOS/nixpkgs) and didn't feel the urgent need to do any changes to them (yet).
 
-### 3.1 Enter `nix-shell`
+### 2.1 Enter `nix-shell`
+
+The provided [`shell.nix`](./nixos/maintainers/scripts/azure-new/shell.nix) and [`image.nix`](./nixos/maintainers/scripts/azure-new/examples/basic/image.nix) will import the [Nixpkgs repo](https://github.com/NixOS/nixpkgs)'s `default.nix` (as the script has been part of that repo) if no arguments are provided, therefore to avoid `nix-shell` erroring out, either change `shell.nix` towards your own package set or define the `pkgs` when invoking it:
 
 ```text
-$ nix-shell
+$ nix-shell --arg pkgs 'import <nixpkgs> {}'
+```
+You may have to look further though as [`system.nix`](./nixos/maintainers/scripts/azure-new/examples/basic/system.nix) (called by [`image.nix`](./nixos/maintainers/scripts/azure-new/examples/basic/image.nix)) relies on the `virtualisation.azureImage` (defined in [`azure-image.nix`](./nixos/modules/virtualisation/azure-image.nix)) attribute that, at the time of writing this, is not yet present in the 20.03 channel and you will need to find a Nixpkgs commit that works, mostly using trial and error.
+
+Commit `0c0fe6d` worked for me (but it's quite old):
+
+```text
+$ nix-shell --arg pkgs 'import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/0c0fe6d85b92c4e992e314bd6f9943413af9a309.tar.gz") {}'
 ```
 
-See section 2.1 on how to provide a specific Nixpkgs version to `nix-shell`.
+See also [issue #86005](https://github.com/NixOS/nixpkgs/issues/86005) when getting `The option `virtualisation.azureImage` defined in ... does not exist`.
 
-### 3.2 Create and upload image ([`upload-image.sh`](./nixos/maintainers/scripts/azure-new/upload-image.sh))
+### 2.2 Create and upload image ([`upload-image.sh`](./nixos/maintainers/scripts/azure-new/upload-image.sh))
 
 ```text
 [..]$ ./upload-image.sh --resource-group "my-rg" --image-name "my-image"
@@ -78,7 +62,6 @@ $ ./upload-image.sh -g "my-rg" -n "my-image" -b "
 ```
 
 Other options and default values (`./upload-image.sh --help`):
-
 
 ```text
 USAGE: (Every switch requires an argument)
@@ -110,7 +93,7 @@ USAGE: (Every switch requires an argument)
                       for `./upload-image.sh` is used
 ```
 
-### 3.3 Start virtual machine ([`boot-vm.sh`](./nixos/maintainers/scripts/azure-new/boot-vm.sh))
+### 2.3 Start virtual machine ([`boot-vm.sh`](./nixos/maintainers/scripts/azure-new/boot-vm.sh))
 
 To create an existing virtual machine on Azure:
 
