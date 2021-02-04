@@ -22,13 +22,14 @@ includes a built-in test user account, which by default uses your
 ## 2. Usage
 
 0. `git clone https://github.com/society-for-the-blind/azure-new.git`  
-   and `cd azure-new/nixos/maintainers/scripts/azure-new/`
 
-1. `nix-shell` (Read **2.1 Enter `nix-shell`** below!)
+1. `cd azure-new/nixos/maintainers/scripts/azure-new/`
 
-2. [`upload-image.sh`](./nixos/maintainers/scripts/azure-new/upload-image.sh)
+2. `nix-shell` (Read **2.1 Enter `nix-shell`** below!)
 
-3. (optional) [`boot-vm.sh`](./nixos/maintainers/scripts/azure-new/boot-vm.sh)
+3. [`upload-image.sh`](./nixos/maintainers/scripts/azure-new/upload-image.sh)
+
+4. (optional) [`boot-vm.sh`](./nixos/maintainers/scripts/azure-new/boot-vm.sh)
 
 The reason behind the weird directory paths is that this script has been pulled out from the main [Nixpkgs repo](https://github.com/NixOS/nixpkgs) and didn't feel the urgent need to do any changes to them (yet).
 
