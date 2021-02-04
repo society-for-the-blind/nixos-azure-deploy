@@ -21,17 +21,39 @@ includes a built-in test user account, which by default uses your
 
 ## 2. Usage
 
-0. `git clone https://github.com/society-for-the-blind/azure-new.git`  
+0. `git clone https://github.com/society-for-the-blind/azure-new.git`
 
 1. `cd azure-new/nixos/maintainers/scripts/azure-new/`
 
-2. `nix-shell` (Read **2.1 Enter `nix-shell`** below!)
+2. Create Nix expression(s) (or modify existing ones) to create an Azure image
 
-3. [`upload-image.sh`](./nixos/maintainers/scripts/azure-new/upload-image.sh)
+3. `nix-shell` (Read **2.1 Enter `nix-shell`** below!)
 
-4. (optional) [`boot-vm.sh`](./nixos/maintainers/scripts/azure-new/boot-vm.sh)
+4. [`upload-image.sh`](./nixos/maintainers/scripts/azure-new/upload-image.sh)
+
+5. (optional) [`boot-vm.sh`](./nixos/maintainers/scripts/azure-new/boot-vm.sh)
 
 The reason behind the weird directory paths is that this script has been pulled out from the main [Nixpkgs repo](https://github.com/NixOS/nixpkgs) and didn't feel the urgent need to do any changes to them (yet).
+
+### 2.0 Create Nix expression(s)
+
+Following Cole's original setup, `image.nix` will create an Azure image and will call `system.nix` in the process (where the latter will end up becoming the new system's `configuration.nix`).
+
+`nixos/maintainers/scripts/azure-new/`'s structure with comments:
+
+.
+├── examples               # Cole's original setup with this project
+│   └── basic              # (not updated in a while, will  probably
+│       ├── image.nix      #  fail)
+│       └── system.nix
+│
+├── tr2-image              # Updated scripts for Society for the Blind's
+│   ├── image.nix          # Access News telephone service
+│   └── system.nix
+│
+├── boot-vm.sh
+├── shell.nix
+└── upload-image.sh
 
 ### 2.1 Enter `nix-shell`
 
