@@ -81,7 +81,7 @@ See also [issue #86005](https://github.com/NixOS/nixpkgs/issues/86005) when gett
 or, to also boot up the new image, use:
 
 ```text
-$ ./upload-image.sh -g "my-rg" -n "my-image" -b "
+$ ./upload-image.sh -g "my-rg" -n "my-image" -b  #... see --boot-sh-opts option below
 ```
 
 Other options and default values (`./upload-image.sh --help`):
@@ -103,14 +103,17 @@ USAGE: (Every switch requires an argument)
 -l --location       Values from `az account list-locations`.
                     Default value: "westus2".
 
--b --boot-sh-opts   Once  the image  is created  and uploaded,
-                    run `./boot-vm.sh`  with arguments  in the
-                    format of "opt1=val1;...;optn=valn".
+-b --boot-sh-opts   Run  `./boot-vm.sh`  once   the  image  is
+                    created and  uploaded; takes  arguments in
+                    the  format of  "opt1=val1;...;optn=valn".
+                    (See the  avialable `boot-vm.sh`'s options
+                    at section 2.3 below.)
 
                     + "vm-name=..." (or "n=...") is mandatory
 
-                    + "--image" will  be  pre-populated  with
-                      the created image's ID
+                    + if   "--image"   (i.e.,   "image=..")   is
+                      omitted, it will be pre-populated with the
+                      just created image's name
 
                     + if  resource group  is omitted,  the one
                       for `./upload-image.sh` is used
