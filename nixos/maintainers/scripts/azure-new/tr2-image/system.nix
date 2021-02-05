@@ -46,18 +46,19 @@ in
     # Should be named `overrideTemplateConfigFiles`
     # TODO add this comment to freeswitch.nix in nix.land
     # TODO homework: write function that takes an attribute set or list and evaluates it recursively
-    configDir =
-      # TODO Is this how to properly prefix paths? So confused:
-      # https://toraritte.github.io/posts/2020-08-13-paths-vs-string-in-nix.html 
-      let fs = ./tr2-image/freeswitch-vanilla-config-overrides;
-      in
-      # nix-repl> d = dir: a.mapAttrs' (name: value: a.nameValuePair ( dir + "/${name}" ) (value)) 
-      # nix-repl> d "freeswitch" (a.recursiveUpdate { "main.xml" = 9; } (d "auto" { "pre.xml" = 1; "another.conf.xml" = 2; }))
-      # { "freeswitch/auto/another.conf.xml" = 2; "freeswitch/auto/pre.xml" = 1; "freeswitch/main.xml" = 9; }
-      {
-        "autoload_configs/pre_load_modules.conf.xml" = fs + /
-      }
-    };
+
+    # configDir =
+    #   # TODO Is this how to properly prefix paths? So confused:
+    #   # https://toraritte.github.io/posts/2020-08-13-paths-vs-string-in-nix.html 
+    #   let fs = ./tr2-image/freeswitch-vanilla-config-overrides;
+    #   in
+    #   # nix-repl> d = dir: a.mapAttrs' (name: value: a.nameValuePair ( dir + "/${name}" ) (value)) 
+    #   # nix-repl> d "freeswitch" (a.recursiveUpdate { "main.xml" = 9; } (d "auto" { "pre.xml" = 1; "another.conf.xml" = 2; }))
+    #   # { "freeswitch/auto/another.conf.xml" = 2; "freeswitch/auto/pre.xml" = 1; "freeswitch/main.xml" = 9; }
+    #   {
+    #     "autoload_configs/pre_load_modules.conf.xml" = fs + /
+    #   }
+
   };
 }
 
