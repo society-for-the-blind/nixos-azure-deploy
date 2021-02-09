@@ -25,37 +25,101 @@ includes a built-in test user account, which by default uses your
 
 1. `cd azure-new/nixos/maintainers/scripts/azure-new/`
 
-2. Create Nix expression(s) (or modify existing ones) to create an Azure image
+2. Create Nix expression(s) (or modify the existing ones) to build an Azure image (See [**2.1**](#21-create-nix-expressions))
 
-3. `nix-shell` (Read **2.1 Enter `nix-shell`** below!)
+3. `nix-shell` (See [**2.2**](#22-enter-nix-shell))
 
-4. [`upload-image.sh`](./nixos/maintainers/scripts/azure-new/upload-image.sh)
+4. Create and upload an image with [`upload-image.sh`](./nixos/maintainers/scripts/azure-new/upload-image.sh)
 
-5. (optional) [`boot-vm.sh`](./nixos/maintainers/scripts/azure-new/boot-vm.sh)
+5. Create and boot up a virtual machine from a NixOS image with [`boot-vm.sh`](./nixos/maintainers/scripts/azure-new/boot-vm.sh)
 
-The reason behind the weird directory paths is that this script has been pulled out from the main [Nixpkgs repo](https://github.com/NixOS/nixpkgs) and didn't feel the urgent need to do any changes to them (yet).
+Again, the reason behind the weird directory paths is that this script has been pulled out from the main [Nixpkgs repo](https://github.com/NixOS/nixpkgs) and didn't feel the urgent need to do any changes to them (yet).
 
-### 2.0 Create Nix expression(s)
+### 2.0 Examples
 
-Following Cole's original setup, `image.nix` will create an Azure image and will call `system.nix` in the process (where the latter will end up becoming the new system's `configuration.nix`).
+The examples below assume that you have started the `nix-shell` with
 
-`nixos/maintainers/scripts/azure-new/`'s structure with comments:
+```
+$ nix-shell --arg pkgs 'import <nixpkgs> {}'
+```
 
+or similar.
+
+
+#### 2.0.1 Create and upload image, then create a NixOS virtual machine and boot it up
+
+```text
+$ ./upload-image.sh --resource-group sftb-custom-images-rg --image-name sftb-nixos-tr2 --image-nix tr2-image/image
+
+$ ./boot-vm.sh --resource-group sftb-vms-rg --image sftb-nixos-tr2 --vm-name tr2-backup-test
+```
+
+> **Note**
+> The options `--image-name` for [`upload-image.sh`](./nixos/maintainers/scripts/azure-new/upload-image.sh) and `--image` for [`boot-vm.sh`](./nixos/maintainers/scripts/azure-new/boot-vm.sh) are different on purpose, even though many times they would accept the same value. The reason is that the former script _creates_ the image and you supply the name, whereas the latter refers to an already existing object.
+
+#### 2.0.2 Same as above but combine image creation with booting up the VM
+
+```text
+$ ./upload-image.sh -g sftb-custom-images-rg -n sftb-nixos-tr2 -i tr2-image/image.nix -l  westus2 --boot-sh-opts "vm-name=tempnixos"
+```
+
+At this point the only mandatory argument to `--boot-sh-opts` is `vm-name`; it will call [`boot-vm.sh`](./nixos/maintainers/scripts/azure-new/boot-vm.sh) behind the scenes with the provided `--vm-name` argument and the resource group and image name supplied to [`upload-image.sh`](./nixos/maintainers/scripts/azure-new/upload-image.sh).
+
+To avoid the image and the VM ending up in the same resource group, just supply a different resource group to `--boot-sh-opts`. For example:
+
+
+```text
+$ ./upload-image.sh \
+> -g sftb-custom-images-rg \
+> -n sftb-nixos-tr2 \
+> -i tr2-image/image.nix \
+> -l  westus2 \
+> --boot-sh-opts "vm-name=tempnixos;resource-group=new-rg"
+```
+
+#### 2.0.3 Create and boot up VM from existing image
+
+```text
+$ ./boot-vm.sh -g sftb-vms-rg -i sftb-nixos-tr2 -n tr2-backup-test
+```
+
+where `sftb-nixos-tr2` is an existing image in your Azure account. The resource group will be created if not present.
+
+### 2.1 Create Nix expression(s)
+
+Following Cole's original setup, `image.nix` will create an Azure image and will call `system.nix` in the process, where the latter will end up becoming the new system's `configuration.nix`.
+
+ + The original examples are in [`./nixos/maintainers/scripts/azure-new/examples`](./nixos/maintainers/scripts/azure-new/examples) and they still refer to paths as they were in the [Nixpkgs](https://github.com/NixOS/nixpkgs) repo.
+
+ + The ones in the `./nixos/maintainers/scripts/azure-new/tr2-image` will work out of the box and up-to-date, but they are specific to our services.
+
+```text
 .
-├── examples               # Cole's original setup with this project
-│   └── basic              # (not updated in a while, will  probably
-│       ├── image.nix      #  fail)
-│       └── system.nix
-│
-├── tr2-image              # Updated scripts for Society for the Blind's
-│   ├── image.nix          # Access News telephone service
-│   └── system.nix
-│
-├── boot-vm.sh
-├── shell.nix
-└── upload-image.sh
+├── COPYING
+├── nixos
+│   ├── maintainers
+│   │   └── scripts
+│   │       └── azure-new
+│   │           ├── azure -> /nix/store/1p5naccsxq55xlk9g6c8yajm89nrg1ag-azure-image
+│   │           ├── boot-vm.sh
+│   │           ├── examples
+│   │           │   └── basic
+│   │           │       ├── image.nix
+│   │           │       └── system.nix
+│   │           ├── shell.nix
+│   │           ├── tr2-image
+│   │           │   ├── image.nix
+│   │           │   └── system.nix
+│   │           └── upload-image.sh
+│   └── modules
+│       └── virtualisation
+│           └── azure-image.nix
+└── README.md
 
-### 2.1 Enter `nix-shell`
+10 directories, 10 files
+```
+
+### 2.2 Enter `nix-shell`
 
 The provided [`shell.nix`](./nixos/maintainers/scripts/azure-new/shell.nix) and [`image.nix`](./nixos/maintainers/scripts/azure-new/examples/basic/image.nix) will import the [Nixpkgs repo](https://github.com/NixOS/nixpkgs)'s `default.nix` (as the script has been part of that repo) if no arguments are provided, therefore to avoid `nix-shell` erroring out, either change `shell.nix` towards your own package set or define the `pkgs` when invoking it:
 
@@ -64,97 +128,17 @@ $ nix-shell --arg pkgs 'import <nixpkgs> {}'
 ```
 You may have to look further though as [`system.nix`](./nixos/maintainers/scripts/azure-new/examples/basic/system.nix) (called by [`image.nix`](./nixos/maintainers/scripts/azure-new/examples/basic/image.nix)) relies on the `virtualisation.azureImage` (defined in [`azure-image.nix`](./nixos/modules/virtualisation/azure-image.nix)) attribute that, at the time of writing this, is not yet present in the 20.03 channel and you will need to find a Nixpkgs commit that works, mostly using trial and error.
 
-Commit `0c0fe6d` worked for me (but it's quite old):
+This commit works, but I try to update this archive URL whenever I can:
 
 ```text
-$ nix-shell --arg pkgs 'import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/0c0fe6d85b92c4e992e314bd6f9943413af9a309.tar.gz") {}'
+$ nix-shell --arg pkgs 'import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/8e78c2cfbae.tar.gz") {}'
 ```
 
-See also [issue #86005](https://github.com/NixOS/nixpkgs/issues/86005) when getting `The option `virtualisation.azureImage` defined in ... does not exist`.
+Some helpful stuff:
 
-### 2.2 Create and upload image ([`upload-image.sh`](./nixos/maintainers/scripts/azure-new/upload-image.sh))
+ + A helpful [NixOS discourse thread](https://discourse.nixos.org/t/how-to-see-what-commit-is-my-channel-on/4818) (or [Stackoverflow thread](https://stackoverflow.com/questions/66124085/how-to-pin-an-import-nixpkgs-call-to-a-specific-commit/66124086#66124086)) on how to construct the `fetchTarball` URL
 
-```text
-[..]$ ./upload-image.sh --resource-group "my-rg" --image-name "my-image"
-```
-
-or, to also boot up the new image, use:
-
-```text
-$ ./upload-image.sh -g "my-rg" -n "my-image" -b  #... see --boot-sh-opts option below
-```
-
-Other options and default values (`./upload-image.sh --help`):
-
-```text
-USAGE: (Every switch requires an argument)
-
--g --resource-group REQUIRED Created if does  not exist. Will
-                             house a new disk and the created
-                             image.
-
--n --image-name     REQUIRED The  name of  the image  created
-                             (and also of the new disk).
-
--i --image-nix      Nix  expression   to  build  the
-                    image. Default value:
-                    "./examples/basic/image.nix".
-
--l --location       Values from `az account list-locations`.
-                    Default value: "westus2".
-
--b --boot-sh-opts   Run  `./boot-vm.sh`  once   the  image  is
-                    created and  uploaded; takes  arguments in
-                    the  format of  "opt1=val1;...;optn=valn".
-                    (See the  avialable `boot-vm.sh`'s options
-                    at section 2.3 below.)
-
-                    + "vm-name=..." (or "n=...") is mandatory
-
-                    + if   "--image"   (i.e.,   "image=..")   is
-                      omitted, it will be pre-populated with the
-                      just created image's name
-
-                    + if  resource group  is omitted,  the one
-                      for `./upload-image.sh` is used
-```
-
-### 2.3 Start virtual machine ([`boot-vm.sh`](./nixos/maintainers/scripts/azure-new/boot-vm.sh))
-
-To create an existing virtual machine on Azure:
-
-```text
-$ ./boot-vm.sh -g "my-rg" -i "my-image" -n "my-new-vm"
-```
-
-Other options and default values (`./boot-vm.sh --help`):
-
-```text
--g --resource-group REQUIRED Created if does  not exist. Will
-                             house a new disk and the created
-                             image.
-
--i --image          REQUIRED ID or name of an existing image.
-                             (See `az image list --output table`)
-                              or  `az image list --query "[].{ID:id, Name:name}"`.)
-
--n --vm-name        REQUIRED The name of the new virtual machine
-                             to be created.
-
--n --vm-size        See https://azure.microsoft.com/pricing/details/virtual-machines/ for s
-ize info.
-                    Default value: "Standard_DS1_v2"
-
--d --os-size        OS disk size in GB to create.
-                    Default value: "42"
-
--l --location       Values from `az account list-locations`.
-                    Default value: "westus2".
-
-NOTE: Brand new SSH  keypair is going to  be generated. To
-      provide  your own,  edit  the very  last command  in
-      `./boot-vm.sh`.
-```
+ + See also [issue #86005](https://github.com/NixOS/nixpkgs/issues/86005) when getting `The option `virtualisation.azureImage` defined in ... does not exist`.
 
 ## 4. Limitations, quirks, etc.
 

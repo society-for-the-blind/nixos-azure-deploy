@@ -42,7 +42,7 @@ usage() {
   echo '-n --vm-name        REQUIRED The name of the new virtual machine'
   echo '                             to be created.'
   echo ''
-  echo '-n --vm-size        See https://azure.microsoft.com/pricing/details/virtual-machines/ for size info.'
+  echo '-s --vm-size        See https://azure.microsoft.com/pricing/details/virtual-machines/ for size info.'
   echo '                    Default value: "Standard_DS1_v2"'
   echo ''
   echo '-d --os-size        OS disk size in GB to create.'

@@ -49,10 +49,10 @@ in
 
     # configDir =
     #   # TODO Is this how to properly prefix paths? So confused:
-    #   # https://toraritte.github.io/posts/2020-08-13-paths-vs-string-in-nix.html 
+    #   # https://toraritte.github.io/posts/2020-08-13-paths-vs-string-in-nix.html
     #   let fs = ./tr2-image/freeswitch-vanilla-config-overrides;
     #   in
-    #   # nix-repl> d = dir: a.mapAttrs' (name: value: a.nameValuePair ( dir + "/${name}" ) (value)) 
+    #   # nix-repl> d = dir: a.mapAttrs' (name: value: a.nameValuePair ( dir + "/${name}" ) (value))
     #   # nix-repl> d "freeswitch" (a.recursiveUpdate { "main.xml" = 9; } (d "auto" { "pre.xml" = 1; "another.conf.xml" = 2; }))
     #   # { "freeswitch/auto/another.conf.xml" = 2; "freeswitch/auto/pre.xml" = 1; "freeswitch/main.xml" = 9; }
     #   {
@@ -63,7 +63,7 @@ in
 }
 
 # For the `configDir` option this example is given:
-# 
+#
 # ```text
 # {
 #   "freeswitch.xml" = ./freeswitch.xml;
@@ -72,10 +72,10 @@ in
 #   '';
 # }
 # ```
-# 
+#
 # How does this evaluate exactly? The first attribute's value is a local path, while the second one creates a file in the store. The way I understand it, the files in the keys will be replaced by the content of the path values.
-# 
+#
 # + where does `pkgs.writeText` create the file?
 # + how is the file in the template config dir substituted with the new values?
-# 
+#
 # See the source of `writeText` in `<nixpkgs-root>pkgs/build-support/trivial-builders.nix` (search for `writeText =`).
