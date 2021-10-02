@@ -6,7 +6,7 @@
 
 # Making  sure  that  one   is  logged  in  (to  avoid
 # surprises down the line).
-if [ $(az account list 2> /dev/null) == [] ]
+if [ $(az account list | jq -r 'length') -eq 0 ]
 then
   echo
   echo '********************************************************'

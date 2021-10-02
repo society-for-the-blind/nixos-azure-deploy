@@ -9,6 +9,7 @@ pkgs.mkShell {
     # https://gist.github.com/CMCDragonkai/1ae4f4b5edeb021ca7bb1d271caca999
     cacert
     azure-storage-azcopy
+    jq
   ];
 
   AZURE_CONFIG_DIR="/tmp/azure-cli/.azure";
