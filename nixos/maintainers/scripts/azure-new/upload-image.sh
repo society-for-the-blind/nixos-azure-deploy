@@ -6,10 +6,7 @@
 
 # Making  sure  that  one   is  logged  in  (to  avoid
 # surprises down the line).
-# TODO Works flawlessly when  not logged in, but shows
-#      error when do logged in.
-#      > ./upload-image.sh: line 126: [: too many arguments
-if [ $(az account list 2> /dev/null) = [] ]
+if [ $(az account list | jq -r 'length') -eq 0 ]
 then
   echo
   echo '********************************************************'
