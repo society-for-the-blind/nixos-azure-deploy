@@ -49,7 +49,7 @@ or similar.
 #### 2.0.1 Create and upload image, then create a NixOS virtual machine and boot it up
 
 ```text
-$ ./upload-image.sh --resource-group sftb-custom-images-rg --image-name sftb-nixos-tr2 --image-nix tr2-image/image
+$ ./upload-image.sh --resource-group sftb-custom-images-rg --image-name sftb-nixos-tr2 --image-nix tr2-image/image.nix
 
 $ ./boot-vm.sh --resource-group sftb-vms-rg --image sftb-nixos-tr2 --vm-name tr2-backup-test
 ```
