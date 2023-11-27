@@ -21,8 +21,8 @@ in
   # description = "Azure NixOS Test User";
   # openssh.authorizedKeys.keys = [ (builtins.readFile ~/.ssh/id_ed25519.pub) ];
   };
-  # nix.trustedUsers = [ username ];
-  nix.trustedUsers = [ "@wheel" ];
+  # nix.settings.trusted-users = [ username ];
+  nix.settings.trusted-users = [ "@wheel" ];
 
   virtualisation.azureImage.diskSize = 2500;
 
@@ -30,7 +30,7 @@ in
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
   # test user doesn't have a password
-  services.openssh.passwordAuthentication = false;
+  services.openssh.settings.PasswordAuthentication = false;
   security.sudo.wheelNeedsPassword = false;
 
   environment.systemPackages = with pkgs; [
